@@ -1,0 +1,1702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DP Studio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Google Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="splash-screen">
+        <div class="splash-logo">DP</div>
+        <div class="splash-text">DP STUDIO</div>
+        <div class="splash-loader"></div>
+    </div>
+
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar">
+        <div class="logo">
+            <span class="material-icons-round">security</span>
+            DP Studio
+        </div>
+        
+        <ul class="nav-links">
+            <li class="active" onclick="switchTab('protect', this)">
+                <span class="material-icons-round">shield</span> Protect APK
+            </li>
+            <li onclick="switchTab('assets-encryptor', this)">
+                <span class="material-icons-round">folder_special</span> Assets Encryptor
+            </li>
+            <li onclick="switchTab('dialog-builder', this)">
+                <span class="material-icons-round">dashboard_customize</span> Dialog Builder
+            </li>
+            <li onclick="switchTab('settings', this)">
+                <span class="material-icons-round">settings</span> Settings
+            </li>
+            <li onclick="switchTab('env', this)">
+                <span class="material-icons-round">cloud_download</span> Environment
+            </li>
+        </ul>
+
+        <!-- Global Log Box -->
+        <div class="global-log-box">
+            <div class="log-header">
+                <div>
+                    <span class="material-icons-round" style="font-size: 16px; vertical-align: middle; margin-right: 4px;">terminal</span> System Logs
+                </div>
+                <button class="icon-button" onclick="copyLogs()" title="Copy Logs">
+                    <span class="material-icons-round" style="font-size: 16px;">content_copy</span>
+                </button>
+            </div>
+            <div class="log-body" id="terminalOutput">
+                <div class="info">Ready. Awaiting commands...</div>
+            </div>
+        </div>
+        
+        <!-- DPMods Watermark -->
+        <div class="watermark">
+            Developed by <span>DPMods</span>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="content">
+        
+        <!-- PROTECT TAB -->
+        <section id="protect" class="tab-content active">
+            <div class="page-header">
+                <h1 class="page-title">Protect Application</h1>
+                <p class="page-subtitle">Configure your APK protection settings and initiate the Dex2C AOT compiler.</p>
+            </div>
+            
+            <div class="md-card">
+                <h2 class="card-title">Configuration</h2>
+                
+                <div class="md-input-group">
+                    <label class="md-label">Target APK</label>
+                    <div class="file-picker">
+                        <input type="text" class="md-input" id="apkPath" placeholder="Select an APK file..." readonly>
+                        <button class="md-button" onclick="browseApk()">
+                            <span class="material-icons-round">folder_open</span> Browse
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="md-input-group">
+                    <label class="md-label">Output Location</label>
+                    <div class="file-picker">
+                        <input type="text" class="md-input" id="savePath" placeholder="Where to save the protected APK..." readonly>
+                        <button class="md-button" onclick="browseSaveLocation()">
+                            <span class="material-icons-round">save</span> Select
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analyzer Section (Appears after APK is selected) -->
+            <div class="md-card analyzer-container" id="analyzerContainer">
+                <h2 class="card-title">APK Class Analyzer</h2>
+                <p style="font-size: 14px; color: var(--md-sys-color-on-surface-variant); margin-bottom: 16px;">
+                    Select the classes you want to encrypt. These will be added to your filter automatically.
+                </p>
+                
+                <div class="analyzer-toolbar">
+                    <div class="search-box">
+                        <span class="material-icons-round search-icon">search</span>
+                        <input type="text" class="md-input search-input" id="classSearch" placeholder="Search classes..." onkeyup="filterClasses()">
+                    </div>
+                    <div class="analyzer-actions">
+                        <button class="md-button outline" onclick="selectAllClasses()"><span class="material-icons-round" style="font-size: 18px;">check_box</span> Select All</button>
+                        <button class="md-button outline" onclick="deselectAllClasses()"><span class="material-icons-round" style="font-size: 18px;">check_box_outline_blank</span> Clear</button>
+                    </div>
+                </div>
+                
+                <div class="analyzer-list" id="classList">
+                    <!-- Checkboxes will be injected here by JS -->
+                </div>
+            </div>
+
+            <button class="md-button-filled" id="runBtn" onclick="runProtection()">
+                <span class="material-icons-round">play_arrow</span> Run Protection
+            </button>
+        </section>
+
+        <!-- ASSETS ENCRYPTOR TAB -->
+        <section id="assets-encryptor" class="tab-content">
+            <div class="page-header">
+                <h1 class="page-title">Assets Encryptor</h1>
+                <p class="page-subtitle">Encrypt the assets folder inside an APK using simple XOR encryption. Protects against basic file extraction.</p>
+            </div>
+
+            <!-- Configuration Card -->
+            <div class="md-card">
+                <div class="md-card-title">Configuration</div>
+
+                <div class="form-group">
+                    <label class="md-label">Target APK</label>
+                    <div class="input-with-button">
+                        <input type="text" id="assetsApkPath" class="md-input" placeholder="Select an APK to encrypt its assets..." readonly>
+                        <button class="md-button md-button-secondary" onclick="browseAssetsApk()">
+                            <span class="material-icons-round" style="font-size: 18px; margin-right: 6px;">folder</span> Browse
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top: 16px;">
+                    <label class="md-label">Output APK Path (Optional)</label>
+                    <div class="input-with-button">
+                        <input type="text" id="assetsOutputPath" class="md-input" placeholder="Default: Same folder as Target APK" readonly>
+                        <button class="md-button md-button-secondary" onclick="browseAssetsOutput()">
+                            <span class="material-icons-round" style="font-size: 18px; margin-right: 6px;">save</span> Browse
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label class="md-label">Encryption Key (XOR)</label>
+                    <input type="text" id="encryptionKey" class="md-input" placeholder="Enter a secret string key (e.g., DPModsSecret123)">
+                    <p style="font-size: 12px; color: var(--md-sys-color-on-surface-variant); margin-top: 4px;">This key will be used to XOR encode all files inside the assets folder. You must XOR them back in your C++ Mod Menu.</p>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label class="md-label">Exclude Files / Extensions (Optional)</label>
+                    <input type="text" id="excludeFiles" class="md-input" placeholder="e.g., .html, .css, .js, index.html">
+                    <p style="font-size: 12px; color: var(--md-sys-color-on-surface-variant); margin-top: 4px;">Skip encrypting these extensions or files. Required if your app needs to load them directly (like a WebView loading index.html).</p>
+                </div>
+
+                <div class="form-group" style="display: flex; align-items: center; justify-content: space-between; background: var(--md-sys-color-surface-variant); padding: 12px 16px; border-radius: 8px;">
+                    <div>
+                        <label class="md-label" style="margin-bottom: 0;">Inject Auto-Decrypter (WebView Fix)</label>
+                        <p style="font-size: 12px; color: var(--md-sys-color-on-surface-variant); margin-top: 4px;">Automatically injects Smali code to decrypt assets to cache at startup, allowing WebViews to load encrypted HTML perfectly.</p>
+                    </div>
+                    <label class="md-switch">
+                        <input type="checkbox" id="injectAutoDecrypt">
+                        <span class="md-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="md-card" id="encryptProgressCard" style="display: none; margin-top: 24px; padding: 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span id="encryptProgressText" style="font-size: 14px; font-weight: 500; color: var(--md-sys-color-primary);">Processing...</span>
+                    <span id="encryptProgressPercent" style="font-size: 12px; color: var(--md-sys-color-on-surface-variant);">0%</span>
+                </div>
+                <div class="md-progress-bg" style="margin-top: 0; height: 6px; border-radius: 3px;">
+                    <div class="md-progress-fill" id="encryptProgressFill" style="width: 0%;"></div>
+                </div>
+            </div>
+
+            <button class="md-button md-button-primary md-fab" id="encryptBtn" onclick="runEncryption()" style="margin-top: 24px;">
+                <span class="material-icons-round" style="font-size: 20px; margin-right: 8px;">lock</span> Start Encryption
+            </button>
+        </section>
+
+        <!-- DIALOG BUILDER TAB -->
+        <section id="dialog-builder" class="tab-content">
+            <div class="page-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h1 class="page-title">DP Studio Builder</h1>
+                    <p class="page-subtitle">Design your custom Kodular-style dialog and inject it directly into the APK.</p>
+                </div>
+                <div>
+                    <button class="md-button md-button-secondary" onclick="browseDialogApk()" style="margin-right: 8px;">
+                        <span class="material-icons-round">folder</span> Select APK
+                    </button>
+                    <button class="md-button" onclick="showLivePreview()" style="background: var(--md-sys-color-secondary); color: var(--md-sys-color-on-secondary); border: none; margin-right: 8px;">
+                        <span class="material-icons-round">play_arrow</span> Live Preview
+                    </button>
+                    <button class="md-button md-button-primary" id="btnBuildDialog" onclick="injectDialog()">
+                        <span class="material-icons-round">build</span> Build & Inject
+                    </button>
+                </div>
+            </div>
+
+            <div class="md-input-group" style="margin-bottom: 16px;">
+                <input type="text" class="md-input" id="dialogApkPath" placeholder="Selected APK path..." readonly>
+            </div>
+
+            <div class="builder-container">
+                <!-- Palette -->
+                <div class="builder-palette">
+                    <h3 style="margin-top: 0; color: var(--md-sys-color-primary); font-size: 16px;">Components</h3>
+                    
+                    <div style="margin-bottom: 12px;">
+                        <input type="text" id="componentSearch" class="md-input" placeholder="Search elements..." onkeyup="filterComponents()" style="width: 100%; border-radius: 20px; padding: 6px 12px; font-size: 12px;">
+                    </div>
+
+                    <div class="palette-item" draggable="true" ondragstart="dragStart(event, 'square')">
+                        <span class="material-icons-round">check_box_outline_blank</span> Square
+                    </div>
+                    <div class="palette-item" draggable="true" ondragstart="dragStart(event, 'circle')">
+                        <span class="material-icons-round">radio_button_unchecked</span> Circle
+                    </div>
+                    <div class="palette-item" draggable="true" ondragstart="dragStart(event, 'text')">
+                        <span class="material-icons-round">title</span> Text Label
+                    </div>
+                    <div class="palette-item" draggable="true" ondragstart="dragStart(event, 'button')">
+                        <span class="material-icons-round">smart_button</span> Button
+                    </div>
+                    <div class="palette-item" draggable="true" ondragstart="dragStart(event, 'image')">
+                        <span class="material-icons-round">image</span> Image
+                    </div>
+                    <div class="palette-item" draggable="true" ondragstart="dragStart(event, 'input')">
+                        <span class="material-icons-round">input</span> Input Field
+                    </div>
+                    <div class="palette-item" draggable="true" ondragstart="dragStart(event, 'switch')">
+                        <span class="material-icons-round">toggle_on</span> Switch
+                    </div>
+                    <div class="palette-item" draggable="true" ondragstart="dragStart(event, 'login')">
+                        <span class="material-icons-round">login</span> Firebase Login Base
+                    </div>
+                </div>
+
+                <!-- Canvas -->
+                <div class="builder-canvas-wrapper" style="display: flex; flex-direction: column; align-items: center;">
+                    
+                    <div style="margin-bottom: 16px; background: var(--md-sys-color-surface); padding: 8px 16px; border-radius: 20px; display: flex; gap: 12px; align-items: center;">
+                        <span class="material-icons-round" style="font-size: 18px; color: var(--md-sys-color-primary);">smartphone</span>
+                        <select id="deviceSelector" class="md-input" style="padding: 4px 8px; font-size: 13px; height: auto;" onchange="changeDeviceModel()">
+                            <option value="360x640">Standard (360x640)</option>
+                            <option value="412x915">Google Pixel 7 (412x915)</option>
+                            <option value="390x844">iPhone 14 (390x844)</option>
+                            <option value="400x888">OnePlus / MI (400x888)</option>
+                        </select>
+                        <div style="width: 1px; height: 16px; background: #666;"></div>
+                        <label class="md-checkbox-container" style="margin: 0;">
+                            <input type="checkbox" class="md-checkbox" id="chkSnapGrid" checked>
+                            <span style="font-size: 13px; font-weight: bold;">Magnet Snap</span>
+                        </label>
+                    </div>
+                    
+                    <div class="phone-frame" id="phoneFrame">
+                        <div class="phone-notch"></div>
+                        <div class="phone-inner">
+                            <div class="builder-canvas" id="builderCanvas" ondrop="dropOnCanvas(event)" ondragover="allowDrop(event)">
+                                <!-- Elements will be dropped here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Panels (Properties & Layers) -->
+                <div class="builder-right-panels">
+                    <!-- Properties -->
+                    <div class="builder-properties" id="propertiesPanel">
+                        <h3 style="margin-top: 0; color: var(--md-sys-color-primary); font-size: 16px;">Properties</h3>
+                        <p style="font-size: 12px; color: var(--md-sys-color-on-surface-variant); margin-top: -10px; margin-bottom: 16px;">Select an element to edit</p>
+                        
+                        <div id="propControls" style="display: none; max-height: 40vh; overflow-y: auto; padding-right: 8px;">
+                            <div class="form-group">
+                                <label class="md-label">Background Color</label>
+                                <input type="color" id="propBgColor" class="md-input" style="height: 40px; padding: 4px;" onchange="updateProperty('bgColor')">
+                            </div>
+                        <div class="form-group" style="display: flex; gap: 8px;">
+                            <div style="flex: 1;">
+                                <label class="md-label">Width</label>
+                                <input type="text" id="propWidth" class="md-input" onchange="updateProperty('width')">
+                            </div>
+                            <div style="flex: 1;">
+                                <label class="md-label">Height</label>
+                                <input type="text" id="propHeight" class="md-input" onchange="updateProperty('height')">
+                            </div>
+                        </div>
+
+                        <!-- Corner Radius -->
+                        <div class="form-group" style="padding: 12px; background: rgba(0,0,0,0.2); border-radius: 8px; margin-top: 12px;">
+                            <label class="md-label" style="margin-bottom: 8px; display: block; color: var(--md-sys-color-primary);">Corner Radius</label>
+                            
+                            <!-- Universal Radius -->
+                            <div style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                <label class="md-label" style="font-size: 11px;">Universal Radius (All Corners)</label>
+                                <div style="display: flex; gap: 4px; align-items: center; margin-top: 4px;">
+                                    <input type="range" id="propRadiusAll_slider" min="0" max="100" value="0" style="width: 100%;" oninput="document.getElementById('propRadiusAll').value = this.value + 'px'; updateProperty('radiusAll')">
+                                    <input type="text" id="propRadiusAll" class="md-input" style="width: 50px; font-size: 11px; padding: 4px;" onchange="document.getElementById('propRadiusAll_slider').value = parseInt(this.value); updateProperty('radiusAll')">
+                                </div>
+                            </div>
+                            
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                                <div>
+                                    <label class="md-label" style="font-size: 10px;">Top-Left</label>
+                                    <div style="display: flex; gap: 4px; align-items: center;">
+                                        <input type="range" id="propRadiusTL_slider" min="0" max="100" value="0" style="width: 100%;" oninput="document.getElementById('propRadiusTL').value = this.value + 'px'; updateProperty('radiusTL')">
+                                        <input type="text" id="propRadiusTL" class="md-input" style="width: 50px; font-size: 10px; padding: 4px;" onchange="document.getElementById('propRadiusTL_slider').value = parseInt(this.value); updateProperty('radiusTL')">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="md-label" style="font-size: 10px;">Top-Right</label>
+                                    <div style="display: flex; gap: 4px; align-items: center;">
+                                        <input type="range" id="propRadiusTR_slider" min="0" max="100" value="0" style="width: 100%;" oninput="document.getElementById('propRadiusTR').value = this.value + 'px'; updateProperty('radiusTR')">
+                                        <input type="text" id="propRadiusTR" class="md-input" style="width: 50px; font-size: 10px; padding: 4px;" onchange="document.getElementById('propRadiusTR_slider').value = parseInt(this.value); updateProperty('radiusTR')">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="md-label" style="font-size: 10px;">Bottom-Left</label>
+                                    <div style="display: flex; gap: 4px; align-items: center;">
+                                        <input type="range" id="propRadiusBL_slider" min="0" max="100" value="0" style="width: 100%;" oninput="document.getElementById('propRadiusBL').value = this.value + 'px'; updateProperty('radiusBL')">
+                                        <input type="text" id="propRadiusBL" class="md-input" style="width: 50px; font-size: 10px; padding: 4px;" onchange="document.getElementById('propRadiusBL_slider').value = parseInt(this.value); updateProperty('radiusBL')">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="md-label" style="font-size: 10px;">Bottom-Right</label>
+                                    <div style="display: flex; gap: 4px; align-items: center;">
+                                        <input type="range" id="propRadiusBR_slider" min="0" max="100" value="0" style="width: 100%;" oninput="document.getElementById('propRadiusBR').value = this.value + 'px'; updateProperty('radiusBR')">
+                                        <input type="text" id="propRadiusBR" class="md-input" style="width: 50px; font-size: 10px; padding: 4px;" onchange="document.getElementById('propRadiusBR_slider').value = parseInt(this.value); updateProperty('radiusBR')">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="propTextGroup" style="display: none; padding: 12px; background: rgba(0,0,0,0.2); border-radius: 8px; margin-top: 12px;">
+                            <div class="form-group">
+                                <label class="md-label">Text Content</label>
+                                <input type="text" id="propText" class="md-input" onkeyup="updateProperty('text')">
+                            </div>
+                            <div class="form-group" style="display: flex; gap: 8px; margin-top: 8px;">
+                                <div style="flex: 1;">
+                                    <label class="md-label">Font Size</label>
+                                    <input type="number" id="propFontSize" class="md-input" value="14" onchange="updateProperty('fontSize')">
+                                </div>
+                                <div style="flex: 1;">
+                                    <label class="md-label">Color</label>
+                                    <input type="color" id="propTextColor" class="md-input" style="height: 40px; padding: 4px;" onchange="updateProperty('textColor')">
+                                </div>
+                            </div>
+                            <div class="form-group" style="margin-top: 8px;">
+                                <label class="md-label">Font Family</label>
+                                <select id="propFontFamily" class="md-input" onchange="updateProperty('fontFamily')">
+                                    <option value="'Roboto', sans-serif">Roboto</option>
+                                    <option value="'Inter', sans-serif">Inter</option>
+                                    <option value="'Outfit', sans-serif">Outfit</option>
+                                    <option value="'Courier New', monospace">Monospace</option>
+                                    <option value="'Impact', sans-serif">Impact</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group" id="propImageGroup" style="display: none; margin-top: 12px;">
+                            <label class="md-label">Image Source</label>
+                            <div style="display: flex; gap: 4px;">
+                                <input type="text" id="propImageSrc" class="md-input" onchange="updateProperty('imageSrc')" placeholder="Path or URL">
+                                <button class="md-button md-button-secondary" onclick="browseDialogImage()" style="padding: 0 8px;"><span class="material-icons-round" style="font-size: 16px;">folder</span></button>
+                            </div>
+                        </div>
+                        <div class="form-group" id="propActionGroup" style="display: none; margin-top: 12px;">
+                            <label class="md-label">Button Action</label>
+                            <select id="propAction" class="md-input" onchange="updateProperty('action')">
+                                <option value="none">None</option>
+                                <option value="close">Close Dialog</option>
+                                <option value="login">Trigger Login</option>
+                            </select>
+                        </div>
+
+                        <!-- Animations Group -->
+                        <div style="padding: 12px; background: rgba(0,0,0,0.2); border-radius: 8px; margin-top: 12px;">
+                            <label class="md-label" style="color: var(--md-sys-color-primary); font-weight: bold; font-size: 14px;">Animations</label>
+                            
+                            <div class="form-group" style="margin-top: 8px;">
+                                <label class="md-label">Enter Animation</label>
+                                <select id="propAnimEnter" class="md-input" onchange="updateProperty('animEnter')">
+                                    <option value="none">None</option>
+                                    <option value="anim-fade-in">Fade In</option>
+                                    <option value="anim-fade-up">Fade Up</option>
+                                    <option value="anim-fade-down">Fade Down</option>
+                                    <option value="anim-zoom-in">Zoom In</option>
+                                    <option value="anim-zoom-out">Zoom Out</option>
+                                    <option value="anim-bounce">Bounce In</option>
+                                    <option value="anim-slide-left">Slide Left</option>
+                                    <option value="anim-slide-right">Slide Right</option>
+                                    <option value="anim-flip-x">Flip X</option>
+                                    <option value="anim-flip-y">Flip Y</option>
+                                    <option value="anim-rotate">Rotate In</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group" style="margin-top: 8px;">
+                                <label class="md-label">Loop Animation</label>
+                                <select id="propAnimLoop" class="md-input" onchange="updateProperty('animLoop')">
+                                    <option value="none">None</option>
+                                    <option value="anim-pulse">Pulse</option>
+                                    <option value="anim-float">Float</option>
+                                    <option value="anim-shake">Shake</option>
+                                    <option value="anim-spin">Spin</option>
+                                    <option value="anim-heartbeat">Heartbeat</option>
+                                    <option value="anim-wobble">Wobble</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group" style="margin-top: 8px;">
+                                <label class="md-label">Color Flash Keyframe (AfterEffects style)</label>
+                                <div style="display: flex; gap: 8px;">
+                                    <input type="color" id="propAnimColor1" class="md-input" style="height: 40px; padding: 4px;" onchange="updateProperty('animColor')">
+                                    <input type="color" id="propAnimColor2" class="md-input" style="height: 40px; padding: 4px;" onchange="updateProperty('animColor')">
+                                </div>
+                                <label class="md-checkbox-container" style="margin-top: 8px;">
+                                    <input type="checkbox" class="md-checkbox" id="chkEnableColorAnim" onchange="updateProperty('animColor')">
+                                    Enable Color Flash
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <button class="md-button" onclick="deleteSelectedElement()" style="width: 100%; border-color: #ff5252; color: #ff5252; margin-top: 16px;">
+                            <span class="material-icons-round">delete</span> Delete Element
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Layers -->
+                <div class="builder-layers" style="margin-top: 16px; background: var(--md-sys-color-surface); border-radius: 16px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); flex-grow: 1; display: flex; flex-direction: column;">
+                    <h3 style="margin-top: 0; color: var(--md-sys-color-primary); font-size: 16px;">Layers</h3>
+                    <div id="layerList" class="layer-list" style="flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
+                        <!-- Layers will populate here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Add Menu (Floating) -->
+        <div id="quickAddMenu" class="quick-add-menu" style="display: none; position: fixed; background: var(--md-sys-color-surface); border-radius: 12px; padding: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); z-index: 10000; width: 200px;">
+            <input type="text" id="quickAddSearch" class="md-input" placeholder="Search..." onkeyup="filterQuickAdd()" style="margin-bottom: 8px; width: 100%; border-radius: 8px;">
+            <div class="quick-add-items" id="quickAddItemsList" style="display: flex; flex-direction: column; gap: 4px;">
+                <div class="quick-add-item" onclick="quickAddElement('square')"><span class="material-icons-round">check_box_outline_blank</span> Square</div>
+                <div class="quick-add-item" onclick="quickAddElement('circle')"><span class="material-icons-round">radio_button_unchecked</span> Circle</div>
+                <div class="quick-add-item" onclick="quickAddElement('text')"><span class="material-icons-round">title</span> Text Label</div>
+                <div class="quick-add-item" onclick="quickAddElement('button')"><span class="material-icons-round">smart_button</span> Button</div>
+                <div class="quick-add-item" onclick="quickAddElement('image')"><span class="material-icons-round">image</span> Image</div>
+                <div class="quick-add-item" onclick="quickAddElement('input')"><span class="material-icons-round">input</span> Input Field</div>
+                <div class="quick-add-item" onclick="quickAddElement('switch')"><span class="material-icons-round">toggle_on</span> Switch</div>
+                <div class="quick-add-item" onclick="quickAddElement('login')"><span class="material-icons-round">login</span> Firebase Login Base</div>
+            </div>
+        </div>
+        
+        <div class="md-card" id="dialogProgressCard" style="display: none; margin-top: 16px; padding: 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span id="dialogProgressText" style="font-size: 14px; font-weight: 500; color: var(--md-sys-color-primary);">Processing...</span>
+                </div>
+                <div class="md-progress-bg" style="margin-top: 0; height: 6px; border-radius: 3px;">
+                    <div class="md-progress-fill" id="dialogProgressFill" style="width: 100%; animation: indeterminate 2s infinite linear;"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SETTINGS TAB -->
+        <section id="settings" class="tab-content">
+            <h1 class="page-title">Advanced Settings</h1>
+            
+            <div class="md-card">
+                <h2 class="card-title">Compiler Options</h2>
+                
+                <label class="md-checkbox-container">
+                    <input type="checkbox" class="md-checkbox" id="chkObfuscate" checked>
+                    Obfuscate C++ Source Code
+                </label>
+                
+                <label class="md-checkbox-container">
+                    <input type="checkbox" class="md-checkbox" id="chkSkipSynthetic">
+                    Skip Synthetic Methods
+                </label>
+            </div>
+
+            <div class="md-card">
+                <h2 class="card-title">Manual Regex Filters</h2>
+                <p style="font-size: 14px; color: var(--md-sys-color-on-surface-variant); margin-bottom: 16px;">
+                    Rules typed here will be combined with the checkboxes selected in the Analyzer. (One rule per line).
+                </p>
+                <textarea id="filterInput" class="md-textarea" spellcheck="false"></textarea>
+            </div>
+        </section>
+
+        <!-- ENVIRONMENT TAB -->
+        <section id="env" class="tab-content">
+            <h1 class="page-title">Environment Setup</h1>
+            
+            <div class="md-card">
+                <h2 class="card-title">Required Tools</h2>
+                <p style="font-size: 14px; color: var(--md-sys-color-on-surface-variant); margin-bottom: 24px; line-height: 1.5;">
+                    Dex2C requires the Android NDK, Java JDK, and Apktool. Click the button below to download and configure all dependencies automatically.
+                </p>
+
+                <div class="md-input-group">
+                    <label class="md-label">NDK Download Directory (Requires 3GB+ Space)</label>
+                    <div class="file-picker">
+                        <input type="text" class="md-input" id="ndkPath" readonly>
+                        <button class="md-button" onclick="browseNdkLocation()">
+                            <span class="material-icons-round">folder</span> Browse
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="md-card">
+                <h2 class="card-title" id="dlStatus" style="color: var(--md-sys-color-primary);">Status: Ready</h2>
+                <p id="dlDetails" style="font-size: 14px; color: var(--md-sys-color-on-surface-variant);">Awaiting user action...</p>
+                
+                <div class="md-progress-bg">
+                    <div class="md-progress-fill" id="dlProgressFill"></div>
+                </div>
+
+                <button class="md-button-filled" id="dlBtn" onclick="startDownloadEnv()" style="margin-top: 24px;">
+                    <span class="material-icons-round">download</span> Download & Install Requirements
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Global Progress Modal Removed -->
+
+    <script>window.onerror = function(m, u, l, c, e) { alert("JS ERROR line " + l + ": " + m); };
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.body.classList.add('loaded');
+            }, 1200); // 1.2 second splash screen animation
+        });
+
+        // Tab Navigation
+        function switchTab(tabId, element) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.nav-links li').forEach(li => li.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            element.classList.add('active');
+        }
+
+        // Logging System
+        function logTerminal(message, type="info") {
+            const term = document.getElementById('terminalOutput');
+            const line = document.createElement('div');
+            line.className = type; // info, error, success
+            line.innerText = message;
+            term.appendChild(line);
+            term.scrollTop = term.scrollHeight; // Auto-scroll
+        }
+
+        // File Browsing API Calls
+        function browseAssetsApk() {
+            pywebview.api.browse_apk().then(path => {
+                if (path) {
+                    document.getElementById('assetsApkPath').value = path;
+                }
+            });
+        }
+
+        function browseAssetsOutput() {
+            pywebview.api.browse_save_location().then(path => {
+                if (path) {
+                    document.getElementById('assetsOutputPath').value = path;
+                }
+            });
+        }
+
+        function runEncryption() {
+            const apkPath = document.getElementById('assetsApkPath').value;
+            const outPath = document.getElementById('assetsOutputPath').value;
+            const key = document.getElementById('encryptionKey').value;
+            const excludeList = document.getElementById('excludeFiles').value;
+            const autoDecrypt = document.getElementById('injectAutoDecrypt').checked;
+            
+            if(!apkPath) {
+                logTerminal("ERROR: No APK selected for asset encryption.", "error");
+                return;
+            }
+            if(!key) {
+                logTerminal("ERROR: Encryption Key is required.", "error");
+                return;
+            }
+
+            const btn = document.getElementById('encryptBtn');
+            btn.innerHTML = '<span class="material-icons-round" style="font-size: 20px; margin-right: 8px; animation: rotate 2s linear infinite;">autorenew</span> Encrypting...';
+            btn.disabled = true;
+
+            logTerminal("Starting Asset Encryption on " + apkPath.split(/(\\|\/)/g).pop() + "...", "info");
+            pywebview.api.encrypt_assets(apkPath, key, excludeList, autoDecrypt, outPath);
+        }
+
+        function resetEncryptBtn() {
+            const btn = document.getElementById('encryptBtn');
+            btn.innerHTML = '<span class="material-icons-round" style="font-size: 20px; margin-right: 8px;">lock</span> Start Encryption';
+            btn.disabled = false;
+        }
+
+        function updateEncryptProgress(visible, status, percent) {
+            const card = document.getElementById('encryptProgressCard');
+            if (visible) {
+                card.style.display = 'block';
+                document.getElementById('encryptProgressText').innerText = status;
+                document.getElementById('encryptProgressPercent').innerText = Math.round(percent * 100) + '%';
+                document.getElementById('encryptProgressFill').style.width = `${percent * 100}%`;
+            } else {
+                card.style.display = 'none';
+            }
+        }
+
+        function browseApk() {
+            window.pywebview.api.browse_apk().then(path => {
+                if (path) {
+                    document.getElementById('apkPath').value = path;
+                    analyzeApk(path);
+                }
+            });
+        }
+
+        function browseSaveLocation() {
+            window.pywebview.api.browse_save_location().then(path => {
+                if (path) document.getElementById('savePath').value = path;
+            });
+        }
+
+        function browseNdkLocation() {
+            window.pywebview.api.browse_ndk_location().then(path => {
+                if (path) document.getElementById('ndkPath').value = path;
+            });
+        }
+
+        // --- APK Analyzer Logic ---
+        function analyzeApk(apkPath) {
+            document.getElementById('analyzerContainer').style.display = 'block';
+            document.getElementById('classList').innerHTML = '<div style="padding:15px; color:#aaa;">Analyzing classes, please wait...</div>';
+            
+            window.pywebview.api.analyze_apk_classes(apkPath).then(classes => {
+                const listDiv = document.getElementById('classList');
+                listDiv.innerHTML = '';
+                
+                if (classes.length === 0) {
+                    listDiv.innerHTML = '<div style="padding:15px; color:#ffb4ab;">No classes found or analysis failed.</div>';
+                    return;
+                }
+                
+                if (classes[0].startsWith("Error:")) {
+                    listDiv.innerHTML = `<div style="padding:15px; color:#ffb4ab;">${classes[0]}</div>`;
+                    return;
+                }
+
+                classes.forEach(cls => {
+                    const id = "cls_" + cls.replace(/[^a-zA-Z0-9]/g, "_");
+                    const item = document.createElement('div');
+                    item.className = 'class-item';
+                    
+                    item.innerHTML = `
+                        <input type="checkbox" class="md-checkbox analyzer-cb" id="${id}" value="${cls}">
+                        <label for="${id}">${cls}</label>
+                    `;
+                    listDiv.appendChild(item);
+                });
+            });
+        }
+
+        function selectAllClasses() {
+            document.querySelectorAll('.analyzer-cb').forEach(cb => cb.checked = true);
+        }
+        function deselectAllClasses() {
+            document.querySelectorAll('.analyzer-cb').forEach(cb => cb.checked = false);
+        }
+
+        function getSelectedClasses() {
+            const selected = [];
+            document.querySelectorAll('.analyzer-cb:checked').forEach(cb => {
+                selected.push(cb.value);
+            });
+            return selected;
+        }
+
+        // --- Dialog Builder Logic ---
+        let selectedElement = null;
+        let elementCounter = 0;
+        let isTransformMode = false;
+        const imagesList = new Set(); // Track local images added to the canvas
+
+        // Device Selection
+        function changeDeviceModel() {
+            const size = document.getElementById('deviceSelector').value.split('x');
+            const w = parseInt(size[0]);
+            const h = parseInt(size[1]);
+            const frame = document.getElementById('phoneFrame');
+            
+            frame.style.width = w + 'px';
+            frame.style.height = h + 'px';
+            
+            // Scale down if it exceeds viewport
+            const wrapper = document.querySelector('.builder-canvas-wrapper');
+            const availableHeight = wrapper.offsetHeight - 80;
+            if (h > availableHeight) {
+                const scale = availableHeight / h;
+                frame.style.transform = `scale(${scale})`;
+                frame.style.transformOrigin = 'top center';
+            } else {
+                frame.style.transform = 'none';
+            }
+        }
+        
+        // Component Filter
+        function filterComponents() {
+            const filter = document.getElementById('componentSearch').value.toLowerCase();
+            const items = document.querySelectorAll('.palette-item');
+            items.forEach(item => {
+                if(item.innerText.toLowerCase().includes(filter)) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        function dragStart(ev, type) {
+            ev.dataTransfer.setData("type", type);
+        }
+
+        function allowDrop(ev) {
+            ev.preventDefault();
+        }
+
+        function dropOnCanvas(ev) {
+            ev.preventDefault();
+            const type = ev.dataTransfer.getData("type");
+            if (!type) return;
+
+            const canvas = document.getElementById('builderCanvas');
+            const rect = canvas.getBoundingClientRect();
+            let x = ev.clientX - rect.left;
+            let y = ev.clientY - rect.top;
+
+            createElementOnCanvas(type, x, y);
+        }
+
+        function createElementOnCanvas(type, x, y) {
+            const el = document.createElement('div');
+            el.className = 'canvas-element';
+            el.id = 'element_' + (++elementCounter);
+            el.dataset.type = type;
+            
+            // Default styles based on type
+            let defaultWidth = '100px';
+            let defaultHeight = '100px';
+            let defaultBg = '#333333';
+            let innerHTML = '';
+
+            if (type === 'square') {
+                el.style.borderRadius = '8px';
+            } else if (type === 'circle') {
+                el.style.borderRadius = '50%';
+            } else if (type === 'text') {
+                defaultBg = 'transparent';
+                defaultHeight = 'auto';
+                defaultWidth = 'auto';
+                innerHTML = '<span class="element-text">New Text</span>';
+                el.style.color = '#ffffff';
+                el.style.padding = '8px';
+            } else if (type === 'button') {
+                defaultWidth = '120px';
+                defaultHeight = '40px';
+                defaultBg = 'var(--md-sys-color-primary)';
+                el.style.borderRadius = '20px';
+                el.style.color = '#000000';
+                el.style.display = 'flex';
+                el.style.alignItems = 'center';
+                el.style.justifyContent = 'center';
+                el.style.fontWeight = 'bold';
+                el.style.cursor = 'pointer';
+                innerHTML = '<span class="element-text">Button</span>';
+                el.dataset.action = 'none';
+            } else if (type === 'image') {
+                defaultBg = 'transparent';
+                innerHTML = '<img src="" alt="Image" style="width:100%; height:100%; object-fit:cover; pointer-events:none; border:1px dashed #666; border-radius:8px;">';
+            } else if (type === 'input') {
+                defaultWidth = '200px';
+                defaultHeight = '40px';
+                defaultBg = '#333333';
+                el.style.borderRadius = '8px';
+                el.style.color = '#ffffff';
+                innerHTML = '<input type="text" placeholder="Input text..." style="width:100%; height:100%; background:transparent; border:none; color:inherit; padding:8px; box-sizing:border-box; pointer-events:none; font-family:inherit; font-size:inherit;">';
+            } else if (type === 'switch') {
+                defaultWidth = '50px';
+                defaultHeight = '24px';
+                defaultBg = 'transparent';
+                innerHTML = '<div style="width:100%; height:100%; background:#444; border-radius:12px; position:relative;"><div style="width:20px; height:20px; background:#fff; border-radius:50%; position:absolute; top:2px; left:2px;"></div></div>';
+            } else if (type === 'login') {
+                defaultWidth = '300px';
+                defaultHeight = '250px';
+                defaultBg = '#222222';
+                el.style.borderRadius = '16px';
+                el.style.border = '1px solid #444';
+                innerHTML = `
+                    <div style="padding: 20px; color: white; display: flex; flex-direction: column; gap: 10px; height: 100%; box-sizing: border-box;">
+                        <h3 style="margin: 0 0 10px 0; text-align: center;">Login</h3>
+                        <input type="text" placeholder="Username" style="padding: 10px; border-radius: 8px; border: none; background: #333; color: white; pointer-events:none;">
+                        <input type="password" placeholder="Password" style="padding: 10px; border-radius: 8px; border: none; background: #333; color: white; pointer-events:none;">
+                        <button style="padding: 10px; border-radius: 20px; border: none; background: var(--md-sys-color-primary); color: black; font-weight: bold; margin-top: auto; pointer-events:none;">Login via Firebase</button>
+                    </div>
+                `;
+            }
+
+            el.style.width = defaultWidth;
+            el.style.height = defaultHeight;
+            el.style.backgroundColor = defaultBg;
+            el.style.left = Math.max(0, x - 50) + 'px';
+            el.style.top = Math.max(0, y - 50) + 'px';
+            el.innerHTML = innerHTML;
+
+            // Make draggable
+            makeCanvasElementDraggable(el);
+            
+            // Select it
+            el.addEventListener('mousedown', (e) => {
+                selectElement(el);
+                e.stopPropagation();
+            });
+
+            document.getElementById('builderCanvas').appendChild(el);
+            selectElement(el);
+        }
+
+        function makeCanvasElementDraggable(el) {
+            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+            let realTop = 0, realLeft = 0;
+            el.onmousedown = dragMouseDown;
+
+            function dragMouseDown(e) {
+                e = e || window.event;
+                e.preventDefault();
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                realTop = el.offsetTop;
+                realLeft = el.offsetLeft;
+                document.onmouseup = closeDragElement;
+                document.onmousemove = elementDrag;
+                selectElement(el);
+            }
+
+            function elementDrag(e) {
+                e = e || window.event;
+                e.preventDefault();
+                pos1 = pos3 - e.clientX;
+                pos2 = pos4 - e.clientY;
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                
+                realTop = realTop - pos2;
+                realLeft = realLeft - pos1;
+                
+                let newTop = realTop;
+                let newLeft = realLeft;
+
+                // Snap to Grid (Magnet)
+                const snapEnabled = document.getElementById('chkSnapGrid').checked;
+                if (snapEnabled) {
+                    const gridSize = 20;
+                    newTop = Math.round(newTop / gridSize) * gridSize;
+                    newLeft = Math.round(newLeft / gridSize) * gridSize;
+                }
+
+                el.style.top = newTop + "px";
+                el.style.left = newLeft + "px";
+            }
+
+            function closeDragElement() {
+                document.onmouseup = null;
+                document.onmousemove = null;
+            }
+        }
+
+    // Free Transform Logic
+    document.addEventListener('keydown', function(e) {
+        // Ctrl+T Transform
+        if (e.ctrlKey && e.key.toLowerCase() === 't') {
+            if (selectedElement) {
+                e.preventDefault();
+                toggleTransformMode();
+            }
+        }
+        // Enter to Commit Transform
+        else if (e.key === 'Enter') {
+            if (isTransformMode) {
+                e.preventDefault();
+                toggleTransformMode();
+            }
+        }
+        // Ctrl+I Invert Color
+        else if (e.ctrlKey && e.key.toLowerCase() === 'i') {
+            if (selectedElement) {
+                e.preventDefault();
+                invertElementColor();
+            }
+        }
+        // Shift+A Quick Add Menu
+        else if (e.shiftKey && e.key.toLowerCase() === 'a') {
+            e.preventDefault();
+            const quickAdd = document.getElementById('quickAddMenu');
+            if (quickAdd.style.display === 'block') {
+                quickAdd.style.display = 'none';
+            } else {
+                quickAdd.style.display = 'block';
+                let posX = lastMouseX;
+                let posY = lastMouseY;
+                const menuWidth = 224;
+                const menuHeight = 350;
+                if (posX + menuWidth > window.innerWidth) posX = window.innerWidth - menuWidth - 20;
+                if (posY + menuHeight > window.innerHeight) posY = window.innerHeight - menuHeight - 20;
+                quickAdd.style.left = posX + 'px';
+                quickAdd.style.top = posY + 'px';
+                document.getElementById('quickAddSearch').focus();
+            }
+        }
+    });
+
+    let lastMouseX = window.innerWidth / 2;
+    let lastMouseY = window.innerHeight / 2;
+    document.addEventListener('mousemove', (e) => {
+        lastMouseX = e.clientX;
+        lastMouseY = e.clientY;
+    });
+
+    // Close quick add if click outside
+    document.addEventListener('click', (e) => {
+        const quickAdd = document.getElementById('quickAddMenu');
+        if (quickAdd.style.display === 'block' && !quickAdd.contains(e.target) && !e.shiftKey) {
+            quickAdd.style.display = 'none';
+        }
+    });
+
+    function filterQuickAdd() {
+        const query = document.getElementById('quickAddSearch').value.toLowerCase();
+        const items = document.getElementById('quickAddItemsList').children;
+        for(let i=0; i<items.length; i++) {
+            if (items[i].innerText.toLowerCase().includes(query)) {
+                items[i].style.display = 'flex';
+            } else {
+                items[i].style.display = 'none';
+            }
+        }
+    }
+
+    function quickAddElement(type) {
+        const canvas = document.getElementById('builderCanvas');
+        const rect = canvas.getBoundingClientRect();
+        
+        // Convert screen coordinates to canvas coordinates
+        const x = lastMouseX - rect.left;
+        const y = lastMouseY - rect.top;
+
+        // Ensure we don't spawn outside canvas
+        const safeX = Math.max(0, Math.min(x, canvas.offsetWidth - 50));
+        const safeY = Math.max(0, Math.min(y, canvas.offsetHeight - 50));
+
+        // Use existing dropOnCanvas logic by simulating a drag event
+        const el = document.createElement("div");
+        el.className = "canvas-element";
+        el.style.position = "absolute";
+        el.style.left = safeX + "px";
+        el.style.top = safeY + "px";
+        el.dataset.type = type;
+        el.id = 'elem_' + elementCounter++;
+        
+        // Use the drop builder logic
+        if (type === 'square') {
+            el.style.width = "100px"; el.style.height = "100px"; el.style.backgroundColor = "#555555";
+        } else if (type === 'circle') {
+            el.style.width = "100px"; el.style.height = "100px"; el.style.backgroundColor = "#555555"; el.style.borderRadius = "50%";
+        } else if (type === 'text') {
+            el.style.width = "150px"; el.style.height = "40px"; el.style.backgroundColor = "transparent";
+            el.innerHTML = '<span class="element-text" style="color:white; font-size: 16px;">Text Label</span>';
+            el.dataset.text = "Text Label";
+        } else if (type === 'button') {
+            el.style.width = "120px"; el.style.height = "40px"; el.style.backgroundColor = "var(--md-sys-color-primary)"; el.style.borderRadius = "20px";
+            el.innerHTML = '<span class="element-text" style="color:white; font-size: 14px; text-align: center; line-height: 40px; display: block;">Button</span>';
+            el.dataset.text = "Button";
+            el.dataset.action = "close";
+        } else if (type === 'image') {
+            el.style.width = "100px"; el.style.height = "100px"; el.style.backgroundColor = "transparent";
+            el.innerHTML = '<img src="https://via.placeholder.com/100" style="width:100%; height:100%; pointer-events:none;">';
+        } else if (type === 'input') {
+            el.style.width = "200px"; el.style.height = "50px"; el.style.backgroundColor = "transparent";
+            el.innerHTML = '<input type="text" placeholder="Enter text..." style="width:100%; height:100%; box-sizing:border-box; border:1px solid #777; border-radius:8px; padding:8px; background:rgba(0,0,0,0.5); color:white; pointer-events:none;">';
+        } else if (type === 'switch') {
+            el.style.width = "50px"; el.style.height = "26px"; el.style.backgroundColor = "transparent";
+            el.innerHTML = '<div style="width:100%; height:100%; background:#444; border-radius:13px; position:relative;"><div style="width:20px; height:20px; background:#fff; border-radius:50%; position:absolute; top:3px; left:3px;"></div></div>';
+        } else if (type === 'login') {
+            el.style.width = "280px"; el.style.height = "250px"; el.style.backgroundColor = "#2d2d2d"; el.style.borderRadius = "16px";
+            el.innerHTML = `<div style="padding:16px; display:flex; flex-direction:column; gap:12px; height:100%; box-sizing:border-box; pointer-events:none;">
+                <h3 style="margin:0; color:white; text-align:center;">Login</h3>
+                <input type="text" placeholder="Username" style="padding:8px; border-radius:8px; border:none; background:#444; color:white;">
+                <input type="password" placeholder="Password" style="padding:8px; border-radius:8px; border:none; background:#444; color:white;">
+                <button style="padding:10px; border-radius:8px; border:none; background:var(--md-sys-color-primary); color:white; font-weight:bold; margin-top:auto;">LOGIN</button>
+            </div>`;
+        }
+        
+        makeCanvasElementDraggable(el);
+        canvas.appendChild(el);
+        selectElement(el);
+        updateLayersPanel();
+        
+        // Hide quick add menu
+        document.getElementById('quickAddMenu').style.display = 'none';
+        document.getElementById('quickAddSearch').value = '';
+        filterQuickAdd();
+    }
+
+    function invertElementColor() {
+        if(!selectedElement) return;
+        const style = window.getComputedStyle(selectedElement);
+        let rgbMatch = style.backgroundColor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+        if(rgbMatch) {
+            let r = 255 - parseInt(rgbMatch[1]);
+            let g = 255 - parseInt(rgbMatch[2]);
+            let b = 255 - parseInt(rgbMatch[3]);
+            selectedElement.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+            
+            // Convert to HEX for the color picker
+            let hex = "#" + (1 << 24 | r << 16 | g << 8 | b).toString(16).slice(1);
+            document.getElementById('propBgColor').value = hex;
+        }
+    }
+
+    function toggleTransformMode() {
+        if (!selectedElement) return;
+        isTransformMode = !isTransformMode;
+        
+        // Remove existing handles
+        const existing = selectedElement.querySelectorAll('.resize-handle');
+        existing.forEach(h => h.remove());
+        selectedElement.classList.remove('transform-active');
+
+        if (isTransformMode) {
+            const handles = ['nw', 'ne', 'sw', 'se'];
+            handles.forEach(pos => {
+                const h = document.createElement('div');
+                h.className = `resize-handle resize-${pos}`;
+                h.onmousedown = (e) => initResize(e, pos);
+                selectedElement.appendChild(h);
+            });
+        }
+    }
+
+    function initResize(e, pos) {
+        e.preventDefault();
+        e.stopPropagation(); // prevent drag
+        let startX = e.clientX;
+        let startY = e.clientY;
+        let startWidth = parseInt(document.defaultView.getComputedStyle(selectedElement).width, 10);
+        let startHeight = parseInt(document.defaultView.getComputedStyle(selectedElement).height, 10);
+        let startTop = selectedElement.offsetTop;
+        let startLeft = selectedElement.offsetLeft;
+        let ratio = startWidth / startHeight;
+
+        function doResize(e) {
+            let dx = e.clientX - startX;
+            let dy = e.clientY - startY;
+            
+            let newWidth = startWidth;
+            let newHeight = startHeight;
+            let newTop = startTop;
+            let newLeft = startLeft;
+
+            if (pos === 'se') {
+                newWidth = startWidth + dx;
+                newHeight = e.shiftKey ? newWidth / ratio : startHeight + dy;
+            } else if (pos === 'sw') {
+                newWidth = startWidth - dx;
+                newHeight = e.shiftKey ? newWidth / ratio : startHeight + dy;
+                newLeft = startLeft + dx;
+                if(e.shiftKey) newTop = startTop + (startHeight - newHeight);
+            } else if (pos === 'ne') {
+                newWidth = startWidth + dx;
+                newHeight = e.shiftKey ? newWidth / ratio : startHeight - dy;
+                newTop = startTop + dy;
+            } else if (pos === 'nw') {
+                newWidth = startWidth - dx;
+                newHeight = e.shiftKey ? newWidth / ratio : startHeight - dy;
+                newTop = startTop + dy;
+                newLeft = startLeft + dx;
+            }
+
+            if(newWidth > 10 && newHeight > 10) {
+                selectedElement.style.width = newWidth + 'px';
+                selectedElement.style.height = newHeight + 'px';
+                selectedElement.style.top = newTop + 'px';
+                selectedElement.style.left = newLeft + 'px';
+                
+                // Update properties panel
+                document.getElementById('propWidth').value = newWidth + 'px';
+                document.getElementById('propHeight').value = newHeight + 'px';
+            }
+        }
+
+        function stopResize() {
+            document.removeEventListener('mousemove', doResize);
+            document.removeEventListener('mouseup', stopResize);
+        }
+
+        document.addEventListener('mousemove', doResize);
+        document.addEventListener('mouseup', stopResize);
+    }
+
+    function selectElement(el) {
+        if (selectedElement) {
+            selectedElement.classList.remove('selected-element');
+            const existing = selectedElement.querySelectorAll('.resize-handle');
+            existing.forEach(h => h.remove());
+        selectedElement.classList.remove('transform-active');
+        }
+        isTransformMode = false;
+        selectedElement = el;
+        el.classList.add('selected-element');
+            
+            // Update properties panel
+            document.getElementById('propControls').style.display = 'block';
+            document.getElementById('propBgColor').value = rgb2hex(el.style.backgroundColor || '#000000');
+            document.getElementById('propWidth').value = el.style.width;
+            document.getElementById('propHeight').value = el.style.height;
+            document.getElementById('propRadiusTL').value = el.style.borderTopLeftRadius || '0px';
+            document.getElementById('propRadiusAll').value = el.style.borderTopLeftRadius || '0px';
+            document.getElementById('propRadiusAll_slider').value = parseInt(el.style.borderTopLeftRadius || 0);
+            document.getElementById('propRadiusTL_slider').value = parseInt(el.style.borderTopLeftRadius || 0);
+            document.getElementById('propRadiusTR').value = el.style.borderTopRightRadius || '0px';
+            document.getElementById('propRadiusTR_slider').value = parseInt(el.style.borderTopRightRadius || 0);
+            document.getElementById('propRadiusBL').value = el.style.borderBottomLeftRadius || '0px';
+            document.getElementById('propRadiusBL_slider').value = parseInt(el.style.borderBottomLeftRadius || 0);
+            document.getElementById('propRadiusBR').value = el.style.borderBottomRightRadius || '0px';
+            document.getElementById('propRadiusBR_slider').value = parseInt(el.style.borderBottomRightRadius || 0);
+
+            const type = el.dataset.type;
+            
+            // Show/hide specific property fields
+            const hasText = ['text', 'button', 'input'].includes(type);
+            document.getElementById('propTextGroup').style.display = hasText ? 'block' : 'none';
+            document.getElementById('propImageGroup').style.display = (type === 'image') ? 'block' : 'none';
+            document.getElementById('propActionGroup').style.display = (type === 'button') ? 'block' : 'none';
+
+            if (hasText) {
+                const textNode = el.querySelector('.element-text') || el.querySelector('input');
+                if (textNode) {
+                    document.getElementById('propText').value = textNode.innerText || textNode.placeholder || "";
+                    document.getElementById('propFontSize').value = parseInt(window.getComputedStyle(el).fontSize) || 14;
+                    document.getElementById('propTextColor').value = rgb2hex(el.style.color || '#ffffff');
+                    
+                    let fontFam = el.style.fontFamily;
+                    if (fontFam) document.getElementById('propFontFamily').value = fontFam;
+                }
+            }
+
+            if (type === 'image') {
+                const img = el.querySelector('img');
+                if (img) document.getElementById('propImageSrc').value = img.getAttribute('src');
+            }
+
+            if (type === 'button') {
+                document.getElementById('propAction').value = el.dataset.action || 'none';
+            }
+
+            // Restore Animation States
+            document.getElementById('propAnimEnter').value = el.dataset.animEnter || 'none';
+            document.getElementById('propAnimLoop').value = el.dataset.animLoop || 'none';
+            document.getElementById('propAnimColor1').value = el.dataset.animC1 || '#ff0000';
+            document.getElementById('propAnimColor2').value = el.dataset.animC2 || '#0000ff';
+            document.getElementById('chkEnableColorAnim').checked = el.dataset.animColorEnabled === 'true';
+        }
+
+        function updateProperty(prop) {
+            if (!selectedElement) return;
+
+            if (prop === 'bgColor') {
+                selectedElement.style.backgroundColor = document.getElementById('propBgColor').value;
+            } else if (prop === 'width') {
+                selectedElement.style.width = document.getElementById('propWidth').value;
+            } else if (prop === 'height') {
+                selectedElement.style.height = document.getElementById('propHeight').value;
+            } else if (prop === 'radiusAll') {
+                const val = document.getElementById('propRadiusAll').value;
+                selectedElement.style.borderTopLeftRadius = val;
+                selectedElement.style.borderTopRightRadius = val;
+                selectedElement.style.borderBottomLeftRadius = val;
+                selectedElement.style.borderBottomRightRadius = val;
+                
+                // Sync individual inputs
+                document.getElementById('propRadiusTL').value = val;
+                document.getElementById('propRadiusTL_slider').value = parseInt(val);
+                document.getElementById('propRadiusTR').value = val;
+                document.getElementById('propRadiusTR_slider').value = parseInt(val);
+                document.getElementById('propRadiusBL').value = val;
+                document.getElementById('propRadiusBL_slider').value = parseInt(val);
+                document.getElementById('propRadiusBR').value = val;
+                document.getElementById('propRadiusBR_slider').value = parseInt(val);
+            } else if (prop === 'radiusTL') {
+                selectedElement.style.borderTopLeftRadius = document.getElementById('propRadiusTL').value;
+            } else if (prop === 'radiusTR') {
+                selectedElement.style.borderTopRightRadius = document.getElementById('propRadiusTR').value;
+            } else if (prop === 'radiusBL') {
+                selectedElement.style.borderBottomLeftRadius = document.getElementById('propRadiusBL').value;
+            } else if (prop === 'radiusBR') {
+                selectedElement.style.borderBottomRightRadius = document.getElementById('propRadiusBR').value;
+            } else if (prop === 'text') {
+                const textSpan = selectedElement.querySelector('.element-text');
+                const inputEl = selectedElement.querySelector('input');
+                if (textSpan) textSpan.innerText = document.getElementById('propText').value;
+                if (inputEl) inputEl.placeholder = document.getElementById('propText').value;
+            } else if (prop === 'fontSize') {
+                selectedElement.style.fontSize = document.getElementById('propFontSize').value + 'px';
+            } else if (prop === 'textColor') {
+                selectedElement.style.color = document.getElementById('propTextColor').value;
+            } else if (prop === 'fontFamily') {
+                selectedElement.style.fontFamily = document.getElementById('propFontFamily').value;
+            } else if (prop === 'imageSrc') {
+                const img = selectedElement.querySelector('img');
+                const src = document.getElementById('propImageSrc').value;
+                if (img) {
+                    img.src = src;
+                    img.style.border = src ? 'none' : '1px dashed #666';
+                    if(src && src.includes(':\\')) imagesList.add(src);
+                }
+            } else if (prop === 'action') {
+                selectedElement.dataset.action = document.getElementById('propAction').value;
+            } else if (prop === 'animEnter') {
+                const val = document.getElementById('propAnimEnter').value;
+                selectedElement.dataset.animEnter = val;
+                applyAnimations(selectedElement);
+            } else if (prop === 'animLoop') {
+                const val = document.getElementById('propAnimLoop').value;
+                selectedElement.dataset.animLoop = val;
+                applyAnimations(selectedElement);
+            } else if (prop === 'animColor') {
+                selectedElement.dataset.animC1 = document.getElementById('propAnimColor1').value;
+                selectedElement.dataset.animC2 = document.getElementById('propAnimColor2').value;
+                selectedElement.dataset.animColorEnabled = document.getElementById('chkEnableColorAnim').checked;
+                applyAnimations(selectedElement);
+            }
+        }
+
+        function applyAnimations(el) {
+            // Remove existing anim classes
+            el.className = el.className.replace(/\banim-[a-zA-Z0-9-]+\b/g, '').trim();
+            
+            const enter = el.dataset.animEnter;
+            const loop = el.dataset.animLoop;
+            
+            if (enter && enter !== 'none') el.classList.add(enter);
+            if (loop && loop !== 'none') el.classList.add(loop);
+
+            // Handle color animation
+            if (el.dataset.animColorEnabled === 'true') {
+                el.style.animation = `colorFlash_${el.id} 2s infinite alternate`;
+                
+                // Inject keyframes dynamically for preview
+                let styleId = `style_${el.id}`;
+                let styleEl = document.getElementById(styleId);
+                if (!styleEl) {
+                    styleEl = document.createElement('style');
+                    styleEl.id = styleId;
+                    document.head.appendChild(styleEl);
+                }
+                styleEl.innerHTML = `
+                    @keyframes colorFlash_${el.id} {
+                        0% { background-color: ${el.dataset.animC1}; }
+                        100% { background-color: ${el.dataset.animC2}; }
+                    }
+                `;
+            } else {
+                el.style.animation = '';
+                let styleEl = document.getElementById(`style_${el.id}`);
+                if(styleEl) styleEl.remove();
+            }
+        }
+
+        function deleteSelectedElement() {
+            if (selectedElement) {
+                selectedElement.remove();
+                selectedElement = null;
+                document.getElementById('propControls').style.display = 'none';
+            }
+        }
+
+        // Helper to convert rgb to hex for color picker
+        function rgb2hex(rgb) {
+            if (rgb.search("rgb") == -1) return rgb;
+            rgb = rgb.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d+(?:\.\d+)?))?\)$/);
+            function hex(x) { return ("0" + parseInt(x).toString(16)).slice(-2); }
+            return "#" + hex(rgb[1]) + hex(rgb[2]) + hex(rgb[3]);
+        }
+
+        // Deselect when clicking canvas background
+        document.addEventListener('DOMContentLoaded', () => {
+            const canvas = document.getElementById('builderCanvas');
+            if(canvas) {
+                canvas.addEventListener('mousedown', (e) => {
+                    if (e.target === canvas) {
+                        if (selectedElement) {
+                            selectedElement.classList.remove('selected-element');
+                            selectedElement = null;
+                            document.getElementById('propControls').style.display = 'none';
+                        }
+                    }
+                });
+            }
+        });
+
+        // Backend Integration
+        function browseDialogApk() {
+            window.pywebview.api.browse_apk().then(path => {
+                if (path) document.getElementById('dialogApkPath').value = path;
+            });
+        }
+
+        function browseDialogImage() {
+            window.pywebview.api.browse_dialog_image().then(path => {
+                if (path) {
+                    document.getElementById('propImageSrc').value = path;
+                    updateProperty('imageSrc');
+                }
+            });
+        }
+
+        function generateDialogHtml() {
+            const canvas = document.getElementById('builderCanvas');
+            const clonedCanvas = canvas.cloneNode(true);
+            const elements = clonedCanvas.querySelectorAll('.canvas-element');
+            const imagesToCopy = [];
+
+            elements.forEach(el => {
+                el.classList.remove('selected-element');
+                el.style.cursor = 'default';
+                
+                const type = el.dataset.type;
+                if (type === 'image') {
+                    const img = el.querySelector('img');
+                    if (img) {
+                        const originalSrc = img.getAttribute('src');
+                        if (originalSrc && originalSrc.includes(':\\')) {
+                            const filename = originalSrc.split(/(\\|\/)/g).pop();
+                            imagesToCopy.push(originalSrc);
+                            img.setAttribute('src', filename);
+                        }
+                    }
+                }
+                
+                if (type === 'button') {
+                    const action = el.dataset.action;
+                    if (action === 'close') {
+                        el.setAttribute('onclick', 'window.AndroidDialog.close()');
+                    } else if (action === 'login') {
+                        el.setAttribute('onclick', 'window.AndroidDialog.login()');
+                    }
+                }
+            });
+
+            const rawHtml = clonedCanvas.innerHTML;
+            let dynamicKeyframes = "";
+            elements.forEach(el => {
+                if (el.dataset.animColorEnabled === 'true') {
+                    dynamicKeyframes += `
+                    @keyframes colorFlash_${el.id} {
+                        0% { background-color: ${el.dataset.animC1}; }
+                        100% { background-color: ${el.dataset.animC2}; }
+                    }`;
+                }
+            });
+            
+            const finalHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Inter:wght@400;700&family=Outfit:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; padding: 0; background: rgba(0,0,0,0.5); width: 100vw; height: 100vh; overflow: hidden; display: flex; align-items: center; justify-content: center; font-family: sans-serif; }
+  .dialog-container { position: relative; width: ${canvas.offsetWidth}px; height: ${canvas.offsetHeight}px; background: transparent; transform: scale(min(window.innerWidth / ${canvas.offsetWidth}, window.innerHeight / ${canvas.offsetHeight})); transform-origin: center center; }
+  .canvas-element { position: absolute; box-sizing: border-box; display: flex; flex-direction: column; animation-fill-mode: both; }
+  .element-text { pointer-events: none; }
+  
+  /* Core Animations */
+  .anim-fade-in { animation: fadeIn 1s; }
+  .anim-fade-up { animation: fadeUp 1s; }
+  .anim-fade-down { animation: fadeDown 1s; }
+  .anim-zoom-in { animation: zoomIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+  .anim-zoom-out { animation: zoomOut 0.8s; }
+  .anim-bounce { animation: bounceIn 1s cubic-bezier(0.215, 0.61, 0.355, 1); }
+  .anim-slide-left { animation: slideLeft 0.8s; }
+  .anim-slide-right { animation: slideRight 0.8s; }
+  .anim-flip-x { animation: flipX 1s; }
+  .anim-flip-y { animation: flipY 1s; }
+  .anim-rotate { animation: rotateIn 1s; }
+  
+  .anim-pulse { animation: pulseLoop 2s infinite; }
+  .anim-float { animation: floatLoop 3s ease-in-out infinite; }
+  .anim-shake { animation: shakeLoop 2s infinite; }
+  .anim-spin { animation: spinLoop 2s linear infinite; }
+  .anim-heartbeat { animation: heartbeatLoop 1.5s ease-in-out infinite; }
+  .anim-wobble { animation: wobbleLoop 2s infinite; }
+
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(50px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeDown { from { opacity: 0; transform: translateY(-50px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes zoomIn { from { opacity: 0; transform: scale3d(0.3, 0.3, 0.3); } 50% { opacity: 1; } }
+  @keyframes zoomOut { from { opacity: 0; transform: scale3d(1.5, 1.5, 1.5); } to { opacity: 1; transform: scale3d(1, 1, 1); } }
+  @keyframes bounceIn { 0% { opacity: 0; transform: scale3d(0.3, 0.3, 0.3); } 20% { transform: scale3d(1.1, 1.1, 1.1); } 40% { transform: scale3d(0.9, 0.9, 0.9); } 60% { opacity: 1; transform: scale3d(1.03, 1.03, 1.03); } 80% { transform: scale3d(0.97, 0.97, 0.97); } to { opacity: 1; transform: scale3d(1, 1, 1); } }
+  @keyframes slideLeft { from { opacity: 0; transform: translateX(100px); } to { opacity: 1; transform: translateX(0); } }
+  @keyframes slideRight { from { opacity: 0; transform: translateX(-100px); } to { opacity: 1; transform: translateX(0); } }
+  @keyframes flipX { from { transform: perspective(400px) rotate3d(1, 0, 0, 90deg); opacity: 0; } 40% { transform: perspective(400px) rotate3d(1, 0, 0, -20deg); } 60% { transform: perspective(400px) rotate3d(1, 0, 0, 10deg); opacity: 1; } 80% { transform: perspective(400px) rotate3d(1, 0, 0, -5deg); } to { transform: perspective(400px); opacity: 1; } }
+  @keyframes flipY { from { transform: perspective(400px) rotate3d(0, 1, 0, 90deg); opacity: 0; } 40% { transform: perspective(400px) rotate3d(0, 1, 0, -20deg); } 60% { transform: perspective(400px) rotate3d(0, 1, 0, 10deg); opacity: 1; } 80% { transform: perspective(400px) rotate3d(0, 1, 0, -5deg); } to { transform: perspective(400px); opacity: 1; } }
+  @keyframes rotateIn { from { transform: rotate(-200deg); opacity: 0; } to { transform: translate(0); opacity: 1; } }
+  
+  @keyframes pulseLoop { 0% { transform: scaleX(1); } 50% { transform: scale3d(1.05, 1.05, 1.05); } to { transform: scaleX(1); } }
+  @keyframes floatLoop { 0% { transform: translateY(0); } 50% { transform: translateY(-15px); } 100% { transform: translateY(0); } }
+  @keyframes shakeLoop { 0%, 100% { transform: translateX(0); } 10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); } 20%, 40%, 60%, 80% { transform: translateX(10px); } }
+  @keyframes spinLoop { 100% { transform: rotate(360deg); } }
+  @keyframes heartbeatLoop { 0% { transform: scale(1); } 14% { transform: scale(1.3); } 28% { transform: scale(1); } 42% { transform: scale(1.3); } 70% { transform: scale(1); } }
+  @keyframes wobbleLoop { 0% { transform: translate(0); } 15% { transform: translate3d(-25%, 0, 0) rotate3d(0, 0, 1, -5deg); } 30% { transform: translate3d(20%, 0, 0) rotate3d(0, 0, 1, 3deg); } 45% { transform: translate3d(-15%, 0, 0) rotate3d(0, 0, 1, -3deg); } 60% { transform: translate3d(10%, 0, 0) rotate3d(0, 0, 1, 2deg); } 75% { transform: translate3d(-5%, 0, 0) rotate3d(0, 0, 1, -1deg); } to { transform: translate(0); } }
+
+  ${dynamicKeyframes}
+</style>
+</head>
+<body>
+<div class="dialog-container">
+${rawHtml}
+</div>
+</body>
+</html>`;
+            return finalHtml;
+        }
+
+        function showLivePreview() {
+            const finalHtml = generateDialogHtml();
+            const modal = document.createElement('div');
+            modal.className = 'preview-modal';
+            modal.style = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; display:flex; align-items:center; justify-content:center;";
+            
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'preview-modal-close';
+            closeBtn.innerHTML = 'Close';
+            closeBtn.style = "position:absolute; top:20px; right:20px; padding:10px 20px; cursor:pointer;";
+            closeBtn.onclick = () => modal.remove();
+            
+            const wrapper = document.createElement('div');
+            const size = document.getElementById('deviceSelector').value.split('x');
+            wrapper.style.width = size[0] + 'px';
+            wrapper.style.height = size[1] + 'px';
+            wrapper.style.border = '12px solid #333';
+            wrapper.style.background = 'white';
+
+            const iframe = document.createElement('iframe');
+            iframe.style = "width:100%; height:100%; border:none;";
+            
+            wrapper.appendChild(iframe);
+            modal.appendChild(closeBtn);
+            modal.appendChild(wrapper);
+            document.body.appendChild(modal);
+            
+            iframe.contentWindow.document.open();
+            iframe.contentWindow.document.write(finalHtml);
+            iframe.contentWindow.document.close();
+        }
+
+        function injectDialog() {
+            const apkPath = document.getElementById('dialogApkPath').value;
+            if(!apkPath) {
+                logTerminal('Please select an APK first.', 'error');
+                return;
+            }
+            
+            const finalHtml = generateDialogHtml();
+            document.getElementById('btnBuildDialog').disabled = true;
+            document.getElementById('dialogProgressCard').style.display = 'block';
+            logTerminal("Starting Dialog Injection...", "info");
+            
+            window.pywebview.api.inject_dialog(apkPath, finalHtml, Array.from(imagesList));
+        }
+
+        function finishDialogBuild(success, msg) {
+            document.getElementById('btnBuildDialog').disabled = false;
+            document.getElementById('dialogProgressCard').style.display = 'none';
+            if (success) {
+                logTerminal(msg, "success");
+            } else {
+                logTerminal(msg, "error");
+            }
+        }
+
+        // --- Class Search & Log Tools ---
+        function filterClasses() {
+            const query = document.getElementById('classSearch').value.toLowerCase();
+            const items = document.querySelectorAll('.class-item');
+            
+            items.forEach(item => {
+                const label = item.querySelector('label').innerText.toLowerCase();
+                if (label.includes(query)) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        function copyLogs() {
+            const term = document.getElementById('terminalOutput');
+            const lines = [];
+            term.querySelectorAll('div').forEach(div => lines.push(div.innerText));
+            const text = lines.join('\n');
+            
+            navigator.clipboard.writeText(text).then(() => {
+                const icon = document.querySelector('.log-header .material-icons-round:last-child');
+                icon.innerText = 'check';
+                setTimeout(() => icon.innerText = 'content_copy', 2000);
+            }).catch(err => console.error("Could not copy text: ", err));
+        }
+
+        // --- Execution Logic ---
+        function runProtection() {
+            const apkPath = document.getElementById('apkPath').value;
+            const savePath = document.getElementById('savePath').value;
+            const obfuscate = document.getElementById('chkObfuscate').checked;
+            const skipSynthetic = document.getElementById('chkSkipSynthetic').checked;
+            
+            // Combine manual regex with selected classes
+            let manualFilters = document.getElementById('filterInput').value.trim();
+            const selectedClasses = getSelectedClasses();
+            
+            let finalFilters = "";
+            if (manualFilters) {
+                finalFilters += manualFilters + "\n";
+            }
+            if (selectedClasses.length > 0) {
+                finalFilters += selectedClasses.join("\n");
+            }
+
+            if (!apkPath) {
+                alert("Please select a Target APK first.");
+                return;
+            }
+
+            document.getElementById('runBtn').disabled = true;
+            document.getElementById('runBtn').innerHTML = '<span class="material-icons-round">hourglass_empty</span> Executing...';
+            
+            window.pywebview.api.run_protection(apkPath, savePath, obfuscate, skipSynthetic, finalFilters);
+        }
+
+        function resetRunBtn() {
+            const btn = document.getElementById('runBtn');
+            btn.disabled = false;
+            btn.innerHTML = '<span class="material-icons-round">play_arrow</span> Run Protection';
+        }
+
+        // --- Download Logic ---
+        function startDownloadEnv() {
+            const ndkPath = document.getElementById('ndkPath').value;
+            document.getElementById('dlBtn').disabled = true;
+            document.getElementById('dlBtn').innerHTML = '<span class="material-icons-round">hourglass_empty</span> Downloading...';
+            
+            window.pywebview.api.start_download_env(ndkPath);
+        }
+
+        function updateDownloadUI(status, details, percent) {
+            document.getElementById('dlStatus').innerText = status;
+            document.getElementById('dlDetails').innerText = details;
+            document.getElementById('dlProgressFill').style.width = `${percent * 100}%`;
+        }
+
+        function resetDlBtn() {
+            const btn = document.getElementById('dlBtn');
+            btn.disabled = false;
+            btn.innerHTML = '<span class="material-icons-round">download</span> Download & Install Requirements';
+        }
+
+        // Init
+        window.addEventListener('pywebviewready', function() {
+            window.pywebview.api.get_default_ndk_path().then(path => {
+                document.getElementById('ndkPath').value = path;
+            });
+        });
+
+        // Layer System Logic
+        function updateLayersPanel() {
+            const list = document.getElementById('layerList');
+            if(!list) return;
+            list.innerHTML = '';
+            
+            const canvas = document.getElementById('builderCanvas');
+            const elements = Array.from(canvas.querySelectorAll('.canvas-element'));
+            
+            // Render top-down (highest z-index / last in DOM is first in list)
+            elements.reverse().forEach((el, index) => {
+                const item = document.createElement('div');
+                item.className = 'layer-item';
+                if(el === selectedElement) item.classList.add('active-layer');
+                
+                // Clicking selects the element
+                item.onclick = (e) => {
+                    if(!e.target.closest('.layer-btn')) {
+                        selectElement(el);
+                        updateLayersPanel();
+                    }
+                };
+
+                const typeCap = el.dataset.type.charAt(0).toUpperCase() + el.dataset.type.slice(1);
+                
+                const titleSpan = document.createElement('span');
+                titleSpan.innerText = `${typeCap} (Elem ${el.id.split('_')[1]})`;
+
+                const actions = document.createElement('div');
+                actions.className = 'layer-actions';
+
+                // Visibility Toggle
+                const btnVis = document.createElement('button');
+                btnVis.className = 'layer-btn';
+                btnVis.innerHTML = `<span class="material-icons-round" style="font-size:16px;">${el.style.opacity === '0' ? 'visibility_off' : 'visibility'}</span>`;
+                btnVis.onclick = (e) => {
+                    e.stopPropagation();
+                    if(el.style.opacity === '0') {
+                        el.style.opacity = '1';
+                    } else {
+                        el.style.opacity = '0';
+                        if(el === selectedElement) {
+                            selectedElement.classList.remove('selected-element');
+                            selectedElement = null;
+                            document.getElementById('propControls').style.display = 'none';
+                        }
+                    }
+                    updateLayersPanel();
+                };
+
+                // Move Up
+                const btnUp = document.createElement('button');
+                btnUp.className = 'layer-btn';
+                btnUp.innerHTML = `<span class="material-icons-round" style="font-size:16px;">arrow_upward</span>`;
+                btnUp.onclick = (e) => {
+                    e.stopPropagation();
+                    if(el.nextElementSibling) {
+                        canvas.insertBefore(el.nextElementSibling, el);
+                        updateLayersPanel();
+                    }
+                };
+
+                // Move Down
+                const btnDown = document.createElement('button');
+                btnDown.className = 'layer-btn';
+                btnDown.innerHTML = `<span class="material-icons-round" style="font-size:16px;">arrow_downward</span>`;
+                btnDown.onclick = (e) => {
+                    e.stopPropagation();
+                    if(el.previousElementSibling) {
+                        canvas.insertBefore(el, el.previousElementSibling);
+                        updateLayersPanel();
+                    }
+                };
+
+                actions.appendChild(btnVis);
+                actions.appendChild(btnUp);
+                actions.appendChild(btnDown);
+                
+                item.appendChild(titleSpan);
+                item.appendChild(actions);
+                list.appendChild(item);
+            });
+        }
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
