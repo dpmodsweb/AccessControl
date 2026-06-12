@@ -354,7 +354,7 @@
                         <img src="https://www.pngplay.com/wp-content/uploads/9/Watch-Dogs-Black-Logo-PNG-Images-HD-preview.webp" alt="Avatar" style="width: 100%; height: 100%; object-fit: contain;">
                     </div>
                     <div style="z-index: 2; position: relative; flex: 1;">
-                        <h1 style="font-size: 1.15rem; font-weight: 900; color: #fff; line-height: 1.2; margin: 0;">DPMODS<br>Admin System</h1>
+                        <h1 style="font-size: 1.15rem; font-weight: 900; color: #fff; line-height: 1.2; margin: 0;">ALPHA<br>Admin System</h1>
                         <div style="display:flex; gap: 6px; margin-top: 6px;">
                             <span style="background: rgba(255,255,255,0.05); padding: 3px 6px; border-radius: 8px; font-size: 0.55rem; color: #aaa; font-weight: 800; border: 1px solid rgba(255,255,255,0.05);">V.3</span>
                             <span style="background: rgba(255,255,255,0.05); padding: 3px 6px; border-radius: 8px; font-size: 0.55rem; color: #aaa; font-weight: 800; border: 1px solid rgba(255,255,255,0.05);">Testing</span>
@@ -363,7 +363,7 @@
                     <div style="position: absolute; left: -20px; top: -20px; width: 100px; height: 100px; background: var(--theme-color); opacity: 0.1; filter: blur(30px); border-radius: 50%;"></div>
                 </div>
 
-            <p style="text-align: center; color: #ddd; font-weight: 500; font-size: 0.85rem; margin-bottom: 20px;">Welcome to DPMODS System</p>
+            <p style="text-align: center; color: #ddd; font-weight: 500; font-size: 0.85rem; margin-bottom: 20px;">Welcome to ALPHA System</p>
             
             <div class="input-wrapper" style="margin-bottom: 15px;">
                 <input type="text" id="auth-url" style="width: 100%; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 18px 20px; color: #fff; font-size: 0.9rem; font-weight: 600; outline: none; transition: border-color 0.3s;" placeholder="Firebase URL...">
@@ -535,7 +535,7 @@
 
 
 
-            <div style="text-align: center; width: 100%; margin-top: 25px; margin-bottom: 10px; color: var(--text-sub); font-size: 0.65rem; font-weight: 700; letter-spacing: 2px;">PANEL BY <span style="color:var(--theme-color); font-weight:800; transition: color 0.8s;">DPMODS</span></div>
+            <div style="text-align: center; width: 100%; margin-top: 25px; margin-bottom: 10px; color: var(--text-sub); font-size: 0.65rem; font-weight: 700; letter-spacing: 2px;">PANEL BY <span style="color:var(--theme-color); font-weight:800; transition: color 0.8s;">ALPHA</span></div>
         </div>
     </div>
 
@@ -694,13 +694,13 @@
             const themeKeys = Object.keys(THEMES);
             const randomTheme = themeKeys[Math.floor(Math.random() * themeKeys.length)];
             applyMonetTheme(THEMES[randomTheme]);
-            Storage.set('dpmods_theme_p14', randomTheme);
+            Storage.set('alpha_theme_p14', randomTheme);
             
             renderSavedLogins();
             
             // Auto Login Logic
-            const savedUrl = Storage.get('dpmods_url_p14');
-            const savedSecret = Storage.get('dpmods_secret_p14');
+            const savedUrl = Storage.get('alpha_url_p14');
+            const savedSecret = Storage.get('alpha_secret_p14');
             if (savedUrl && savedSecret) {
                 document.getElementById('auth-url').value = savedUrl;
                 document.getElementById('auth-secret').value = savedSecret;
@@ -711,7 +711,7 @@
         function renderSavedLogins() {
             const container = document.getElementById('saved-logins');
             if(!container) return;
-            const saved = JSON.parse(Storage.get('dpmods_saved_logins') || '[]');
+            const saved = JSON.parse(Storage.get('alpha_saved_logins') || '[]');
             if(saved.length === 0) {
                 container.innerHTML = '<span style="color:var(--text-sub); font-size:0.75rem;">No saved connections.</span>';
                 return;
@@ -733,9 +733,9 @@
             document.getElementById('auth-secret').value = secret;
         }
         function removeLogin(idx) {
-            let saved = JSON.parse(Storage.get('dpmods_saved_logins') || '[]');
+            let saved = JSON.parse(Storage.get('alpha_saved_logins') || '[]');
             saved.splice(idx, 1);
-            Storage.set('dpmods_saved_logins', JSON.stringify(saved));
+            Storage.set('alpha_saved_logins', JSON.stringify(saved));
             renderSavedLogins();
         }
 
@@ -781,12 +781,12 @@
             const val = document.getElementById('cfg-theme').value;
             if(THEMES[val]) {
                 applyMonetTheme(THEMES[val]);
-                Storage.set('dpmods_theme_p14', val);
+                Storage.set('alpha_theme_p14', val);
             }
         }
         
         function loadTheme() {
-            const val = Storage.get('dpmods_theme_p14') || "neon_purple";
+            const val = Storage.get('alpha_theme_p14') || "neon_purple";
             if(document.getElementById('cfg-theme')) {
                 document.getElementById('cfg-theme').value = val;
             }
@@ -868,14 +868,14 @@
                     await pushToFirebase(true); // Silent push
                 }
                 
-                Storage.set('dpmods_url_p14', FIREBASE_URL);
-                Storage.set('dpmods_secret_p14', secret);
+                Storage.set('alpha_url_p14', FIREBASE_URL);
+                Storage.set('alpha_secret_p14', secret);
                 
                 // Save to Multiple Logins list
-                let savedLogins = JSON.parse(Storage.get('dpmods_saved_logins') || '[]');
+                let savedLogins = JSON.parse(Storage.get('alpha_saved_logins') || '[]');
                 if (!savedLogins.find(l => l.url === FIREBASE_URL)) {
                     savedLogins.push({ url: FIREBASE_URL, secret: secret });
-                    Storage.set('dpmods_saved_logins', JSON.stringify(savedLogins));
+                    Storage.set('alpha_saved_logins', JSON.stringify(savedLogins));
                     renderSavedLogins();
                 }
                 
@@ -889,7 +889,7 @@
                 
             } catch(e) {
                 console.error(e);
-                Storage.remove('dpmods_secret_p14');
+                Storage.remove('alpha_secret_p14');
                 switchView('screen-login');
                 stopAutoSync();
                 
